@@ -40,6 +40,8 @@ class Book(models.Model):
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
     subject =  models.ForeignKey(Subject, on_delete=models.CASCADE)
 
+    to_scrape = models.BooleanField(default=False)
+
     def __str__(self):
         return f'{self.grade} {self.board} {self.subject} {self.title_eng}'
 
