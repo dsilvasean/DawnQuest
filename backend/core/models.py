@@ -27,9 +27,13 @@ class Subject(models.Model):
 class Spider(models.Model):
     SITES = (
         (1, 'EBalbharti'),
+        (2, "shaalaa"),
 
     )
     site = models.IntegerField(choices=SITES,)
+
+    def __str__(self):
+        return f'{self.get_site_display()}'
 
 class Book(models.Model):
     title_orig = models.CharField(max_length=255, blank=False)
