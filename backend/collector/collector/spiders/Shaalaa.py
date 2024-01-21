@@ -38,9 +38,39 @@ class ShaalaaSpider(scrapy.Spider):
     def parse_chapter(self, response):
         questions_block = response.xpath(f"//div[contains(@class, 'qp_result_data')][@data-id]")
         for i, question_block in enumerate(questions_block):
+            review_required= False
+            question_extra_content = None
+            solution_href = question_block.xpath(f".//a[contains(@class, 'view_solution')]/@href").extract()
             question_type_text = question_block.xpath(f".//div[contains(@class, 'html_text')]//strong/text()").extract()
             if not question_type_text:
                 question_type_text = questions_block[i-1].xpath(f".//div[contains(@class, 'html_text')]//strong/text()").extract()
+            
+            question_meta = question_block.xpath(f".//div[contains(@class, 'qp_result_data_data_meta')]/text()").extract()
+            question_ = question_block.xpath(f".//div[contains(@class, 'html_text')]//p[not(@class)]/text()").extract()
+            if not question_:
+                question_ = question_block.xpath(f".//div[contains(@class, 'html_text')]/*[not(self::p[.//strong])]").extract()
+                review_required = True
+            imgs =  question_block.xpath(f".//div[contains(@class, 'html_text')]/*[not(self::p[.//strong])]//img/@src").extract()
+            if imgs:
+                question_extra_content = f"{self.root_url}{' '.join(imgs)}"
+            
+            # yield scrapy.Request()
+
+            _question_ = {
+                'review_required':review_required,
+                'question_type_text':question_type_text,
+                'question_meta':question_meta,
+                'question_': question_,
+                'question_extra_content': question_extra_content,
+                'slution_url': solution_href
+            }
+
+
+            print(_question_)
+    
+    def parse_solution(self, response, _question_):
+        _question_ = _question_
+
             
             
             
