@@ -40,7 +40,9 @@ class ShaalaaSpider(scrapy.Spider):
         for i, question_block in enumerate(questions_block):
             question_type_text = question_block.xpath(f".//div[contains(@class, 'html_text')]//strong/text()").extract()
             if not question_type_text:
-                question_type_text = question_block[i-1]
+                question_type_text = questions_block[i-1].xpath(f".//div[contains(@class, 'html_text')]//strong/text()").extract()
+            
+            
             
 
            
