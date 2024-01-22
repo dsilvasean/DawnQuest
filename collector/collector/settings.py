@@ -1,3 +1,13 @@
+# to populate django models without using management commands
+import sys
+sys.path.insert(0, '/home/sean/repos/DawnQuest')
+
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'DawnQuest.settings'
+
+import django
+django.setup()
+
 # Scrapy settings for collector project
 #
 # For simplicity, this file contains only settings considered important or
@@ -62,9 +72,9 @@ ROBOTSTXT_OBEY = False
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   "collector.pipelines.EBalbhartiPipelinee": 300,
-}
+# ITEM_PIPELINES = {
+#    "collector.pipelines.EBalbhartiPipeline": 300,
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
