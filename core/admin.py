@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Grade, Spider, Book, Board, Subject
+from .models import Grade, Spider, Book, Board, Subject, Meta
 
 class BookAdminModel(admin.ModelAdmin):
     list_display = ('grade', 'title_eng', 'to_scrape')  # Fields to display in the change list
@@ -19,4 +19,5 @@ admin.site.register(Spider)
 admin.site.register(Board)
 admin.site.register(Book, BookAdminModel)
 admin.site.register(Subject)
+admin.site.register(Meta)
 
