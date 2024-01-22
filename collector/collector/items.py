@@ -5,7 +5,6 @@
 
 import scrapy
 from scrapy_djangoitem import DjangoItem
-from core.models import Book
 
 
 
@@ -17,3 +16,9 @@ class BookItem(scrapy.Item):
     grade = scrapy.Field()
     board = scrapy.Field()
     subject = scrapy.Field()
+
+class ShaalaaPublication(scrapy.Item):
+    author = scrapy.Field()
+    hyperlink = scrapy.Field()
+    available = scrapy.Field()
+    
