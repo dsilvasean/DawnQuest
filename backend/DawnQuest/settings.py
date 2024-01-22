@@ -36,6 +36,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'core',
+    'ShaalaaMiner',
     'django.contrib.admin',
     'django_admin_listfilter_dropdown',
     'django.contrib.auth',
