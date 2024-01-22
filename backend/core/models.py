@@ -30,10 +30,12 @@ class Spider(models.Model):
         (2, "shaalaa"),
 
     )
-    site = models.IntegerField(choices=SITES,)
+    site_name = models.IntegerField(choices=SITES,)
+    url = models.URLField(blank=True)
+    spider_name = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
-        return f'{self.get_site_display()}'
+        return f'{self.get_site_name_display()}'
 
 class Book(models.Model):
     title_orig = models.CharField(max_length=255, blank=False)
@@ -48,4 +50,13 @@ class Book(models.Model):
 
     def __str__(self):
         return f'{self.grade} {self.board} {self.subject} {self.title_eng}'
+    
 
+class Meta(models.Model):
+    spider = models.ForeignKey(Spider, on_delete=models.CASCADE)
+    attribute_name = models.CharField(max_length=255)
+    attribute_value = models.BooleanField()
+    attribute_extra = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return f"{self.spider} {self.attribute_name} {self.attribute_value}"
