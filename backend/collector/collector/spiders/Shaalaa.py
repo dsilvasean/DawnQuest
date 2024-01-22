@@ -1,5 +1,7 @@
 import scrapy
 
+from collector.items import ShaalaaPublication
+
 
 class ShaalaaSpider(scrapy.Spider):
     name = "ShaalaaSpider"
@@ -53,6 +55,8 @@ class ShaalaaSpider(scrapy.Spider):
             imgs =  question_block.xpath(f".//div[contains(@class, 'html_text')]/*[not(self::p[.//strong])]//img/@src").extract()
             if imgs:
                 question_extra_content = f"{self.root_url}{' '.join(imgs)}"
+            if solution_href:
+                solution_href = f"{self.root_url}{' '.join(solution_href)}"
             
             # yield scrapy.Request()
 
@@ -62,14 +66,28 @@ class ShaalaaSpider(scrapy.Spider):
                 'question_meta':question_meta,
                 'question_': question_,
                 'question_extra_content': question_extra_content,
-                'slution_url': solution_href
+                'solution_url': solution_href
             }
 
-
-            print(_question_)
+            if len(solution_href) > 4:
+                yield scrapy.Request(solution_href, callback=self.parse_solution, priority=1, cb_kwargs={'_question_':_question_})
+                # print(_question_['question_'])
+            # print(_question_)
     
     def parse_solution(self, response, _question_):
         _question_ = _question_
+        question_type = response.xpath("//div[contains(@class, 'qbq_q_type')]/text()").extract_first() or None
+        solution_block  = response.xpath("//div[contains(@id, 'answer')]")
+
+        if solution_block is not None:
+            _question_['solution_'] = "".join(solution_block.xpath(".//*/text()").extract())
+        
+        _question_['solution_extra'] = None
+        _question_['question_type_from_solution'] = question_type
+        # print(solution_block)
+        
+        print(_question_)
+
 
             
             
