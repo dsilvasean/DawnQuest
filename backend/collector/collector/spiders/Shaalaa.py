@@ -1,4 +1,8 @@
 import scrapy
+from asgiref.sync import sync_to_async
+
+from core.models import Meta
+from ShaalaaMiner.models import Publication, Grade
 
 from collector.items import ShaalaaPublication
 
@@ -9,26 +13,58 @@ class ShaalaaSpider(scrapy.Spider):
     start_urls = ["https://www.shaalaa.com/textbook-solutions"]
     root_url = "https://www.shaalaa.com"
     user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'collector.pipelines.ShaalaaPipeline': 400
+        }}
     publications_to_scrape = ["balbharati"]
     grades_to_scrape = [6]
     subjects_to_scrape = ["history"]
 
+    def get_collected_publication_before(self):
+        meta_object = Meta.objects.filter(spider__spider_name=self.name, attribute_name="publications_scraped").first()
+        return meta_object.attribute_value if meta_object else None
 
-    def parse(self, response):
-        available_publications= response.css("div[class='block']")[1].css("a::attr('href')").getall()
+    def get_publications_db(self):
+        publications_ = Publication.objects.filter(available=True, to_scrape=True).all()
+        if publications_:
+            return [pub_.hyperlink for pub_ in publications_]
+        return None
 
-        for publication in self.publications_to_scrape:
-            publication_tbs_url = [f'{self.root_url}{href}' for href in available_publications if publication.lower() in href][0]
-            yield scrapy.Request(publication_tbs_url, callback=self.parse_publication)
-        
-    def parse_publication(self,response):
-        for grade in self.grades_to_scrape:
-            available_subjects = response.xpath(f"//div[span[@id='{grade}th-standard']]//a/@href").extract()
-            
-            for subject in self.subjects_to_scrape:
-                subject_tb_url = [f'{self.root_url}{href}' for href in available_subjects if subject.lower() in href][0]
-                yield scrapy.Request(subject_tb_url, callback=self.parse_subject)
+    def get_grades(self):
+        grades = Grade.objects.filter(to_scrape=True).all()
+        if grades:
+            return [g_.grade for g_ in grades]
+        return None
+
+    async def parse(self, response):
+        collected_publication_before = await sync_to_async(self.get_collected_publication_before)()
+        if not collected_publication_before:
+            available_publications= response.css("div[class='block']")[1].css("a::attr('href')").getall()
+            available_publications_= response.xpath("//div[contains(@class, 'block') and not(contains(@class, ' '))][2]//a")
+            for _publication in available_publications_:
+                _pub = ShaalaaPublication(author=_publication.xpath("./text()").extract_first(), hyperlink=f"{self.root_url}{_publication.xpath('./@href').extract_first()}", available=True,)
+                yield {"item_data": _pub, "item_type":"publication"}
+        else:
+            publications_to_scrape = await sync_to_async(self.get_publications_db)()
+            if publications_to_scrape is None:
+                print("No Publications to scrape")
+                return 
+
+        for publication in publications_to_scrape:
+            # publication_tbs_url = [f'{self.root_url}{href}' for href in available_publications if publication.lower() in href][0]
+            # yield scrapy.Request(publication_tbs_url, callback=self.parse_publication)
+            yield scrapy.Request(publication, callback=self.parse_publication)
+
+    async def parse_publication(self,response):
+        grades_ = await sync_to_async(self.get_grades)()
+        if grades_:
+            for grade in grades_:
+                available_subjects = response.xpath(f"//div[span[@id='{grade}th-standard']]//a/@href").extract()
+
+                for subject in self.subjects_to_scrape:
+                    subject_tb_url = [f'{self.root_url}{href}' for href in available_subjects if subject.lower() in href][0]
+                    yield scrapy.Request(subject_tb_url, callback=self.parse_subject)
         
     def parse_subject(self, response):
         available_chapters =  response.xpath(f"//div[contains(@class, 'block')]//a[contains(@href, 'chapter') and contains(normalize-space(), 'Chapter')]/@href").extract()[0:1]

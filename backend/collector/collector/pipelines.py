@@ -9,13 +9,23 @@ from itemadapter import ItemAdapter
 
 from core.models import Book, Grade, Subject, Board
 
+from ShaalaaMiner.models import Publication
+
 from asgiref.sync import sync_to_async
-from googletrans import Translator
-import concurrent.futures
-import asyncio
 
 
-
+class ShaalaaPipeline:
+    @sync_to_async  
+    def process_item(self,item,spider):
+        if spider.name == "ShaalaaSpider":
+            if item.get("item_type") == "publication":
+                item_ = item.get("item_data")
+                _pub_ = Publication(
+                    author = item_['author'],
+                    hyperlink = item_['hyperlink']
+                )
+                _pub_.save()
+                return item
 
 
 class EBalbhartiPipeline:

@@ -1,7 +1,7 @@
 import scrapy
 
 from collections import OrderedDict
-from collector.collector.items import BookItem
+from collector.items import BookItem
 import re
 from googletrans import Translator
 
