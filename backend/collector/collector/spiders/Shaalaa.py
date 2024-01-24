@@ -1,9 +1,10 @@
 import scrapy
 from asgiref.sync import sync_to_async
+import json
+from urllib.parse import quote
 
 from core.models import Meta
 from ShaalaaMiner.models import Publication, Grade
-
 from collector.items import ShaalaaPublication
 
 
@@ -24,6 +25,18 @@ class ShaalaaSpider(scrapy.Spider):
     def get_collected_publication_before(self):
         meta_object = Meta.objects.filter(spider__spider_name=self.name, attribute_name="publications_scraped").first()
         return meta_object.attribute_value if meta_object else None
+    
+    def get_products_units_url(self):
+        meta_object = Meta.objects.filter(spider__spider_name=self.name, attribute_name="get_products_units").first()
+        if meta_object:
+            return meta_object.attribute_extras.filter(attribute_extra_name="url").first().attribute_extra_value
+        return None
+
+    def get_chapters_url(self):
+        meta_object = Meta.objects.filter(spider__spider_name=self.name, attribute_name="get_products_units").first()
+        if meta_object:
+            return meta_object.attribute_extras.filter(attribute_extra_name="url_chapters").first().attribute_extra_value
+        return None
 
     def get_publications_db(self):
         publications_ = Publication.objects.filter(available=True, to_scrape=True).all()
@@ -40,7 +53,7 @@ class ShaalaaSpider(scrapy.Spider):
     async def parse(self, response):
         collected_publication_before = await sync_to_async(self.get_collected_publication_before)()
         if not collected_publication_before:
-            available_publications= response.css("div[class='block']")[1].css("a::attr('href')").getall()
+            # available_publications = response.css("div[class='block']")[1].css("a::attr('href')").getall()
             available_publications_= response.xpath("//div[contains(@class, 'block') and not(contains(@class, ' '))][2]//a")
             for _publication in available_publications_:
                 _pub = ShaalaaPublication(author=_publication.xpath("./text()").extract_first(), hyperlink=f"{self.root_url}{_publication.xpath('./@href').extract_first()}", available=True,)
@@ -57,15 +70,70 @@ class ShaalaaSpider(scrapy.Spider):
             yield scrapy.Request(publication, callback=self.parse_publication)
 
     async def parse_publication(self,response):
+        available_grades = []
         grades_ = await sync_to_async(self.get_grades)()
-        if grades_:
-            for grade in grades_:
-                available_subjects = response.xpath(f"//div[span[@id='{grade}th-standard']]//a/@href").extract()
+        _available_grades_ = response.xpath(f"//div[contains(@class, 'unit_solutions')]")
+        products_units_url = await sync_to_async(self.get_products_units_url)()
+        for _grade_ in _available_grades_:
+            grade_t = _grade_.xpath('./text()').re_first(r'Class (\w+)')
+            if grade_t and int(grade_t) in grades_:
+                g = {}
+                g["grade"] = grade_t
+                g["id"] = _grade_.xpath(".//@data-author_course_unit_id").extract_first()
+                # g[grade_t] = _grade_.xpath(".//@data-author_course_unit_id").extract_first()
+                available_grades.append(g)
 
-                for subject in self.subjects_to_scrape:
-                    subject_tb_url = [f'{self.root_url}{href}' for href in available_subjects if subject.lower() in href][0]
-                    yield scrapy.Request(subject_tb_url, callback=self.parse_subject)
+        for grade in available_grades:
+            product_url = f"{products_units_url}?id={int(grade['id'])}"
+            yield scrapy.Request(product_url, callback=self.parse_grades_url)
+
         
+        # if grades_ and available_grades:
+        #     for grade in grades_:
+        #         print(available_grades)
+        #         if grade in available_grades:
+        #             print(grade)
+                # available_subjects = response.xpath(f"//div[span[@id='{grade}th-standard']]//a/@href").extract()
+                # print(available_subjects)
+
+                # for subject in self.subjects_to_scrape:
+                #     subject_tb_url = [f'{self.root_url}{href}' for href in available_subjects if subject.lower() in href][0]
+                #     yield scrapy.Request(subject_tb_url, callback=self.parse_subject)
+        
+
+    def parse_grades_url(self,response):
+        json_response = json.loads(response.text).get('content').get('data')[0]
+        url_ = f"{self.root_url}{json_response.get('url2')}"
+        yield scrapy.Request(url_, callback=self.parse_grades_new, cb_kwargs={"course_id": json_response.get("unit_id")} ) 
+    
+    async def parse_grades_new(self,response, course_id):
+        subjects = []
+       
+        subjects_ = response.xpath("//input[contains(@class,'qp_filter')]")
+        chapters_url = await sync_to_async(self.get_chapters_url)()
+
+        for subject in subjects_:
+            subject_ = {}
+            subject_["name"] = subject.xpath(".//@data-url").extract_first()
+            subject_["id"] = subject.xpath(".//@data-value").extract_first()
+            subjects.append(subject_)
+            
+        chapter_index_param = {
+            "subjects":[str(s_['id']) for s_ in subjects],
+            "id":int(course_id),
+            "getTotal":True
+        }
+        print(chapter_index_param)
+        params_= quote(json.dumps(chapter_index_param))
+        yield scrapy.Request(f"{chapters_url}?type=textbookSolutions&content-type=course&params={params_}", callback=self.parse_chapter_names)
+
+
+    def parse_chapter_names(self, response):
+        pass
+    
+        
+
+
     def parse_subject(self, response):
         available_chapters =  response.xpath(f"//div[contains(@class, 'block')]//a[contains(@href, 'chapter') and contains(normalize-space(), 'Chapter')]/@href").extract()[0:1]
         for chapter in available_chapters:
