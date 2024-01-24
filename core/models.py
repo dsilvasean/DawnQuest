@@ -57,6 +57,17 @@ class Meta(models.Model):
     attribute_name = models.CharField(max_length=255)
     attribute_value = models.BooleanField()
     attribute_extra = models.CharField(max_length=255, blank=True)
+    attribute_user_meata = models.TextField(blank=True)
 
     def __str__(self):
         return f"{self.spider} {self.attribute_name} {self.attribute_value}"
+    
+
+class MetaAttributeExtra(models.Model):
+    meta = models.ForeignKey(Meta, on_delete=models.CASCADE, related_name="attribute_extras")
+    attribute_extra_name = models.CharField(max_length=255)
+    attribute_extra_value = models.TextField()
+
+    def __str__(self):
+        return f"{self.meta.spider} {self.meta.attribute_name} {self.attribute_extra_name}"
+    
