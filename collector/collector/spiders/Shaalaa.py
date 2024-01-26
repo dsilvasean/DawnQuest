@@ -1,6 +1,5 @@
-import scrapy
+import scrapy, json, re
 from asgiref.sync import sync_to_async
-import json, re
 from urllib.parse import quote
 
 from core.models import Meta
@@ -22,25 +21,19 @@ class ShaalaaSpider(scrapy.Spider):
     grades_to_scrape = [6]
     subjects_to_scrape = ["history"]
 
-    def get_collected_publication_before(self):
-        meta_object = Meta.objects.filter(spider__spider_name=self.name, attribute_name="publications_scraped").first()
-        return meta_object.attribute_value if meta_object else None
-    
-    def get_collected_subjects_before(self, grade, publication):
-        meta_object = Meta.objects.filter(spider__spider_name=self.name, attribute_name=f"subjects_scraped_grade_{grade}", attribute_extra__icontains=publication).first()
-        return meta_object.attribute_value if meta_object else None
-    
-    def get_products_units_url(self):
-        meta_object = Meta.objects.filter(spider__spider_name=self.name, attribute_name="get_products_units").first()
-        if meta_object:
-            return meta_object.attribute_extras.filter(attribute_extra_name="url").first().attribute_extra_value
+    def get_meta_stats(self,stat_name, attribute_name=None, attribute_extra_name=None, attribute_extra=None):
+        meta_objects =Meta.objects.filter(spider__spider_name=self.name)
+        if stat_name=="publications_scraped":
+            meta_object = meta_objects.filter(attribute_name=attribute_name).first()
+            return meta_object.attribute_value if meta_object else None
+        elif stat_name=="collected_subjects_before":
+            meta_object = meta_objects.filter(attribute_name=attribute_name, attribute_extra__icontains=attribute_extra).first()
+            return meta_object.attribute_value if meta_object else None
+        elif stat_name=="product_unit_url" or stat_name=="chapters_url":
+            meta_object = meta_objects.filter(attribute_name=attribute_name).first()
+            return meta_object.attribute_extras.filter(attribute_extra_name=attribute_extra_name).first().attribute_extra_value if meta_object else None
         return None
 
-    def get_chapters_url(self):
-        meta_object = Meta.objects.filter(spider__spider_name=self.name, attribute_name="get_products_units").first()
-        if meta_object:
-            return meta_object.attribute_extras.filter(attribute_extra_name="url_chapters").first().attribute_extra_value
-        return None
 
     def get_publications_db(self, name=None):
         if name :
@@ -83,7 +76,7 @@ class ShaalaaSpider(scrapy.Spider):
             return None
 
     async def parse(self, response):
-        collected_publication_before = await sync_to_async(self.get_collected_publication_before)()
+        collected_publication_before = await sync_to_async(self.get_meta_stats)(stat_name="publications_scraped", attribute_name="publications_scraped")
         if not collected_publication_before:
             # available_publications = response.css("div[class='block']")[1].css("a::attr('href')").getall()
             available_publications_= response.xpath("//div[contains(@class, 'block') and not(contains(@class, ' '))][2]//a")
@@ -105,7 +98,7 @@ class ShaalaaSpider(scrapy.Spider):
         available_grades = []
         grades_ = await sync_to_async(self.get_grades)()
         _available_grades_ = response.xpath(f"//div[contains(@class, 'unit_solutions')]")
-        products_units_url = await sync_to_async(self.get_products_units_url)()
+        products_units_url = await sync_to_async(self.get_meta_stats)(stat_name="product_unit_url", attribute_name="get_products_units", attribute_extra_name="url")
         for _grade_ in _available_grades_:
             grade_t = _grade_.xpath('./text()').re_first(r'Class (\w+)')
             if grade_t and int(grade_t) in grades_:
@@ -142,7 +135,7 @@ class ShaalaaSpider(scrapy.Spider):
         subjects = []
        
         subjects_ = response.xpath("//input[contains(@class,'qp_filter')]")
-        chapters_url = await sync_to_async(self.get_chapters_url)()
+        chapters_url = await sync_to_async(self.get_meta_stats)(stat_name="chapters_url", attribute_name="get_products_units", attribute_extra_name="url_chapters")
 
         for subject in subjects_:
             subject_ = {}
@@ -163,7 +156,7 @@ class ShaalaaSpider(scrapy.Spider):
     async def parse_subjects(self, response, grade):
         json_response = json.loads(response.text).get("content").get("data")
         pub_name = json_response.get("data")[0].get("author_names")[0]
-        subjects_and_lessons_scrape = await sync_to_async(self.get_collected_subjects_before)(grade=grade["grade"], publication=pub_name)
+        subjects_and_lessons_scrape = await sync_to_async(self.get_meta_stats)(stat_name="collected_subjects_before", attribute_name=f"subjects_scraped_grade_{grade['grade']}", attribute_extra=pub_name)
         subjects_scrape = []
 
         if not subjects_and_lessons_scrape:
@@ -277,10 +270,3 @@ class ShaalaaSpider(scrapy.Spider):
         _solution_['question_type_from_solution'] = question_type
         _question_["_solution_"] = _solution_
         yield {"item_data": _question_, "item_type":"question_and_solution"}
-
-
-            
-            
-            
-
-           

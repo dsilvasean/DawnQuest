@@ -47,15 +47,6 @@ class Chapter(models.Model):
         return f"{self.subject} {self.name}"
     
 
-
-class Solution(models.Model):
-    solution = tinymce_models.HTMLField()
-
-    def __str__(self):
-        return self.solution
-    # resource = models.ForeignKey(SolutionResource, on_delete=models.CASCADE, blank=True, null=True)
-
-
 class QuestionType(models.Model):
     question_type = models.CharField(max_length=255)
     
@@ -66,19 +57,21 @@ class QuestionType(models.Model):
 class Question(models.Model):
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     type = models.ForeignKey(QuestionType, on_delete=models.CASCADE, blank=False)
-    # question = models.TextField(blank=False)
     question = tinymce_models.HTMLField()
     url = models.URLField(blank=True)
-    # resource = models.ForeignKey(QuestionResource, on_delete=models.CASCADE, blank=True, null=True)
     solution_url = models.URLField(max_length=555)
-    solution = models.ForeignKey(Solution, on_delete=models.CASCADE)
     review_required = models.BooleanField(default=False)
     meta = models.CharField(max_length=255)
 
+    def __str__(self):
+        return f" {self.chapter.subject.grade} {self.chapter.subject.name} {self.chapter.name} {self.type}"
+    
+class Solution(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    solution = tinymce_models.HTMLField()
 
     def __str__(self):
-        return f"{self.question} {self.chapter} {self.type} {self.review_required}"
-
+        return self.solution
 
 class QuestionResource(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
@@ -86,9 +79,7 @@ class QuestionResource(models.Model):
     meta = models.TextField()
 
 class SolutionResource(models.Model):
-    # solution = models.ForeignKey(Solution, on_delete=models.CASCADE)
-    # solution = tinymce_models.HTMLField()
-
+    solution = models.ForeignKey(Solution, on_delete=models.CASCADE)
     resource = models.URLField()
     meta = models.TextField()
     
