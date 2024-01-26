@@ -40,9 +40,6 @@ class ShaalaaPipeline:
                 sub_.save()
                 chapters_ = [Chapter(subject=sub_, name=chapter) for chapter in chapters]
                 Chapter.objects.bulk_create(chapters_)
-                # for chapter in chapters:
-                #     ch_ = Chapter(subject=sub_, name=chapter,)
-                #     ch_.save()
                 return "Item Received"
 
             elif item.get("item_type") == "question_and_solution":
@@ -51,10 +48,9 @@ class ShaalaaPipeline:
                 print("question_pipeline")
                 question_p= self.pre_process_item("question", item_['question_'])
                 solution_p = self.pre_process_item("solution", solution_["solution_"])
-                question_t, created = QuestionType.objects.get_or_create(question_type=solution_['question_type_from_solution'])
-                s_, created = Solution.objects.get_or_create(solution=solution_p)
-                q_ = Question.objects.create(chapter=Chapter.objects.get(id=item_["chapter_id"]), type=question_t, question =question_p, solution_url=item_["solution_url"], solution=s_, review_required=item_["review_required"], meta="".join(item_["question_meta"]))
-                
+                question_t, qt_c = QuestionType.objects.get_or_create(question_type=solution_['question_type_from_solution'])
+                q_= Question.objects.create(chapter=Chapter.objects.get(id=item_["chapter_id"]), type=question_t, question =question_p, solution_url=item_["solution_url"], review_required=item_["review_required"], meta="".join(item_["question_meta"]))
+                s_ = Solution.objects.create(question=q_, solution=solution_p)
 
     def pre_process_item(self, type, data):
         if type == "question" or type == "solution":
