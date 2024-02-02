@@ -142,8 +142,8 @@ class Chapter(models.Model):
 
     to_scrape = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"{self.subject} {self.name}"
+    # def __str__(self):
+    #     return f"{self.subject} {self.name}"
 
 class QuestionType(models.Model):
     question_type = models.CharField(max_length=255)

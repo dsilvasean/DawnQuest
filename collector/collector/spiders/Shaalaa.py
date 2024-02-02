@@ -1,6 +1,7 @@
 import scrapy, json, re
 from asgiref.sync import sync_to_async
 from urllib.parse import quote
+from django.utils.text import slugify
 
 from core.models import Meta
 from core.models import Publication, Grade, Chapter, Subject
@@ -195,15 +196,17 @@ class ShaalaaSpider(scrapy.Spider):
 
     async def parse_subject(self, response, subject):
         print(response)
-        available_chapters =await sync_to_async(self.get_chapters_to_scrape)(subject=subject)
-        # print(available_chapters, subject)
-        available_chapters = [{ "chapter_name":f'{c.name.lower().replace(" ", "-")}', "id": c.id }
-                               for c in  available_chapters]
+        available_chapters_ =await sync_to_async(self.get_chapters_to_scrape)(subject=subject)
+        available_chapters = [{ "chapter_name":f'{slugify(c.name)}', "id": c.id }
+                               for c in  available_chapters_]
+        print(available_chapters)
         chapters_in_dom =  response.xpath(f"//div[contains(@class, 'block')]//a[contains(@href, 'chapter') and contains(normalize-space(), 'Chapter')]/@href").extract()
+        print(chapters_in_dom)
         _chapters_ = [{"chapter_url": f"{self.root_url}{c}", "_chapter": avc}
                       for avc in available_chapters 
                       for c in chapters_in_dom 
-                      if re.search(re.escape(avc["chapter_name"]), c)]       
+                      if re.search(re.escape(avc["chapter_name"]), c)]  
+        print(_chapters_)     
         for chapter in _chapters_:
             print(chapter)
             # await sync_to_async(self.update_chapter_url)(chapter=chapter.split("/")[-1], url=chapter)
