@@ -7,11 +7,13 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
-from core.models import Book, Grade, Subject, Board
+from core.models import Book, Grade, Subject, Board, Chapter, QuestionType, Question, Solution
 
-from ShaalaaMiner.models import Publication, Chapter, Question, Solution, QuestionType, QuestionResource
+# from ShaalaaMiner.models import Question, Solution, QuestionType, QuestionResource
 
-from ShaalaaMiner.models import Subject as ShaalaaSubject
+from core.models import Publication
+
+from core.models import Subject as ShaalaaSubject
 from asgiref.sync import sync_to_async
 
 from bs4 import BeautifulSoup
@@ -27,6 +29,7 @@ class ShaalaaPipeline:
                 item_ = item.get("item_data")
                 _pub_ = Publication(
                     author = item_['author'],
+                    name = item_['author'],
                     hyperlink = item_['hyperlink']
                 )
                 _pub_.save()

@@ -3,7 +3,7 @@ import scrapy
 from collections import OrderedDict
 from collector.items import BookItem
 import re
-from googletrans import Translator
+# from googletrans import Translator
 
 
 
@@ -47,11 +47,12 @@ class EbalbhartiSpider(scrapy.Spider):
             pages  = int(response.css("span[id='lblNoOfPages']::text").get())
         else:
             pages = 0
-        translator = Translator()
+        # translator = Translator()
 
         for book in response.css("div[class='bookDetails1']"):
             book_title = book.css("div[class='divbooknm']::text").get()
-            book_title_ = translator.translate(book_title, dest='en', src='mr').text
+            # book_title_ = translator.translate(book_title, dest='en', src='mr').text
+            book_titile_ = ""
             book_cover = f"""{self.start_urls[0]}/{book.css("img::attr('src')").get()}"""
             book_pdf = book.css("div[class='button']::attr('onclick')").get().split("(")[1].split(",")[0][1:-1]
             grade = _grade_n
