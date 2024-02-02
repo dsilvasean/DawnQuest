@@ -1,6 +1,6 @@
 # to populate django models without using management commands
 import sys
-sys.path.insert(0, '/home/sean/repos/DawnQuest')
+sys.path.insert(0, '/home/sean/Desktop/repos/DawnQuest')
 
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'DawnQuest.settings'

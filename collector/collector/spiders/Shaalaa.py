@@ -3,7 +3,7 @@ from asgiref.sync import sync_to_async
 from urllib.parse import quote
 
 from core.models import Meta
-from ShaalaaMiner.models import Publication, Grade, Chapter, Subject
+from core.models import Publication, Grade, Chapter, Subject
 from collector.items import ShaalaaPublication
 
 
@@ -88,7 +88,8 @@ class ShaalaaSpider(scrapy.Spider):
             if publications_to_scrape is None:
                 print("No Publications to scrape")
                 return 
-
+            
+        publications_to_scrape = await sync_to_async(self.get_publications_db)()
         for publication in publications_to_scrape:
             # publication_tbs_url = [f'{self.root_url}{href}' for href in available_publications if publication.lower() in href][0]
             # yield scrapy.Request(publication_tbs_url, callback=self.parse_publication)
@@ -195,6 +196,7 @@ class ShaalaaSpider(scrapy.Spider):
     async def parse_subject(self, response, subject):
         print(response)
         available_chapters =await sync_to_async(self.get_chapters_to_scrape)(subject=subject)
+        # print(available_chapters, subject)
         available_chapters = [{ "chapter_name":f'{c.name.lower().replace(" ", "-")}', "id": c.id }
                                for c in  available_chapters]
         chapters_in_dom =  response.xpath(f"//div[contains(@class, 'block')]//a[contains(@href, 'chapter') and contains(normalize-space(), 'Chapter')]/@href").extract()

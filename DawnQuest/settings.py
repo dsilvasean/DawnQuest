@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'core',
     'tinymce',
     'ShaalaaMiner',
+    'Assessment',
     'django.contrib.admin',
     'django_admin_listfilter_dropdown',
     'django.contrib.auth',
