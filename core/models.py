@@ -1,4 +1,5 @@
 from django.db import models
+from treebeard.mp_tree import MP_Node
 
 from tinymce import models as tinymce_models
 
@@ -145,17 +146,28 @@ class Chapter(models.Model):
     # def __str__(self):
     #     return f"{self.subject} {self.name}"
 
-class QuestionType(models.Model):
-    question_type = models.CharField(max_length=255)
+# class QuestionType(models.Model):
+#     name = models.CharField(max_length=255)
     
+#     # child = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
+#     # parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
+#     def __str__(self):
+#         return self.name
+
+
+class QuestionType(MP_Node):
+    name = models.CharField(max_length=155)
+
+    node_order_by = ["name"]
+
     def __str__(self):
-        return self.question_type
+        return f"Type: {self.name}"
 
 class Question(QuestionAbstractModel):
     chapter = models.ForeignKey(Chapter, blank=True, null=True, on_delete=models.CASCADE)
-    type = models.ForeignKey(QuestionType, on_delete=models.CASCADE, blank=False)
+    type = models.ForeignKey(QuestionType, on_delete=models.CASCADE, blank=True, null=True)
     solution_url = models.URLField(max_length=555, blank=True)
-    
+
     def __str__(self):
         return f" {self.chapter.subject.grade} {self.chapter.subject.name} {self.chapter.name} {self.type}"
     

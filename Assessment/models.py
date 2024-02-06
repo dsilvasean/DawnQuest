@@ -1,7 +1,7 @@
 from django.db import models
 
 from core.models import TimeStampAbstractModel, MetaAbstarctModel
-from core.models import Board, Grade, Subject, Question, QuestionType
+from core.models import Board, Grade, Subject, Question
 
 class QuestionPaper(TimeStampAbstractModel, MetaAbstarctModel):
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
@@ -28,7 +28,7 @@ class QuestionPaperFormatQuestion(TimeStampAbstractModel,):
 
 class QuestionPaperFormatQuestionSubQuestion(TimeStampAbstractModel):
     question_paper_format_question = models.ForeignKey(QuestionPaperFormatQuestion, on_delete=models.CASCADE)
-    question_type = models.ManyToManyField(QuestionType)
+    # question_type = models.ManyToManyField(QuestionType)
     max_marks = models.IntegerField()
 
 
