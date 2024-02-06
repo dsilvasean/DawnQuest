@@ -6,6 +6,7 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from core.models import Book, Grade, Subject, Board, Chapter, QuestionType, Question, Solution
 
@@ -51,8 +52,23 @@ class ShaalaaPipeline:
                 print("question_pipeline")
                 question_p= self.pre_process_item("question", item_['question_'])
                 solution_p = self.pre_process_item("solution", solution_["solution_"])
-                question_t, qt_c = QuestionType.objects.get_or_create(question_type=solution_['question_type_from_solution'])
-                q_= Question.objects.create(chapter=Chapter.objects.get(id=item_["chapter_id"]), type=question_t, question =question_p, solution_url=item_["solution_url"], review_required=item_["review_required"], meta="".join(item_["question_meta"]))
+                types_list = solution_["question_type_from_solution"] 
+                # types_list = ["MCQ", "Odd MAN OUT", "A", "A", "A"]
+                # root_ = types_list[0]
+                type_ = self.get_or_create_question_type(types_list=types_list)
+
+
+                # question_t, qt_c = QuestionType.objects.get_or_create(name=solution_['question_type_from_solution'])
+                # question_type_subtype = solution_["question_type_subtype_from_solution"]
+                # if question_type_subtype is not None:
+                #     question_st, qt_c = QuestionType.objects.get_or_create(name=question_type_subtype)
+                #     question_t.child = question_st
+                #     question_t.save()
+                    # question_t_subtype , question_t_subtype_c = QuestionSubType.objects.get_or_create(question_type=question_t, question_sub_type=question_type_subtype)
+                #     q_= Question.objects.create(chapter=Chapter.objects.get(id=item_["chapter_id"]), type=question_t, subtype=question_t_subtype, question =question_p, solution_url=item_["solution_url"], review_required=item_["review_required"], meta="".join(item_["question_meta"]))
+                # else:
+                q_= Question.objects.create(chapter=Chapter.objects.get(id=item_["chapter_id"]), type=type_, question =question_p, solution_url=item_["solution_url"], review_required=item_["review_required"], meta="".join(item_["question_meta"]))
+
                 s_ = Solution.objects.create(question=q_, solution=solution_p)
 
     def pre_process_item(self, type, data):
@@ -65,6 +81,41 @@ class ShaalaaPipeline:
                     img['src'] = self.root_url + img['src']
                 data = str(soup)
             return data
+    
+    def get_or_create_question_type(self, types_list):
+        type_node = None
+        if len(types_list)> 1:
+            create_from_root = True
+            for elem in types_list[::-1]:
+                print(elem,)
+                parent = QuestionType.objects.filter(name=elem)
+                if len(parent) > 0:
+                    if parent.first().is_leaf():
+                        create_from_root = False
+                        type_node = parent.first()
+                        break
+                    print(parent)
+                    data = generate_data_from_list(types_list[types_list.index(elem)+1:])
+                    print(data)
+                    type_node = QuestionType.load_bulk(data,parent[0])
+                    create_from_root = False
+                    break
+                else:
+                    create_from_root = True
+                    continue
+            if create_from_root:
+                type_node = QuestionType.load_bulk(generate_data_from_list(types_list))
+        else:
+            try:
+                print(types_list[-1], 'yes')
+                type_node = QuestionType.objects.get(name=types_list[-1])
+                print("type_node", type_node)
+            except ObjectDoesNotExist:
+                print("does not exist")
+                type_node = QuestionType.add_root(name=types_list[-1])
+        return type_node
+        
+
 
 
 class EBalbhartiPipeline:
@@ -105,3 +156,18 @@ class EBalbhartiPipeline:
     # async def translate(self, text):
     #     translator = Translator()
     #     return await sync_to_async(translator.translate)(text, dest='en')
+
+
+# class Utils:
+#     def get_or_create_root(self, model, name):
+
+def generate_data_from_list(list_):
+    root = {'data': {'name': list_[0]}, 'children': []}
+    current_node = root
+
+    for item in list_[1:]:
+        new_node = {'data': {'name': item}, 'children': []}
+        current_node['children'].append(new_node)
+        current_node = new_node
+
+    return [root]

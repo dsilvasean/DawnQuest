@@ -255,7 +255,7 @@ class ShaalaaSpider(scrapy.Spider):
             }
 
             if len(solution_href) > 4:
-                print(_question_)
+                # print(_question_)
                 yield scrapy.Request(solution_href, callback=self.parse_solution, priority=1, cb_kwargs={'_question_':_question_})
                 # print(_question_['question_'])
             # print(_question_)
@@ -263,7 +263,12 @@ class ShaalaaSpider(scrapy.Spider):
     def parse_solution(self, response, _question_):
         _question_ = _question_
         _solution_ = {}
-        question_type = response.xpath("//div[contains(@class, 'qbq_q_type')]/text()").extract_first() or None
+        question_type_div = response.xpath("//div[contains(@class, 'qbq_q_type')]/text()") or None
+        if question_type_div is not None:
+            questions_type = question_type_div.extract()
+        # question_type = question_type_div.extract_first() or None
+        # question_type_sub_type = response.xpath("//div[contains(@class, 'qbq_q_type')]/text()").extract()[-1] if len(question_type_div) > 1 else None
+        # print(question_type, question_type_sub_type)
         solution_block  = response.xpath("//div[contains(@id, 'answer')]")
 
         if solution_block is not None:
@@ -272,6 +277,10 @@ class ShaalaaSpider(scrapy.Spider):
             # _question_['solution_'] = "".join(solution_block.xpath(".//*/text()").extract())
         
         _solution_['extra'] = None
-        _solution_['question_type_from_solution'] = question_type
+        _solution_['question_type_from_solution'] = questions_type
+
+        # _solution_['question_type_subtype_from_solution'] = question_type_sub_type if question_type_sub_type is not None else None
+        
         _question_["_solution_"] = _solution_
+        print(_question_)
         yield {"item_data": _question_, "item_type":"question_and_solution"}

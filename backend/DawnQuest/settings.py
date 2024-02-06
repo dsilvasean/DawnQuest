@@ -37,6 +37,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'core',
     'tinymce',
+    'treebeard',
     'ShaalaaMiner',
     'Assessment',
     'django.contrib.admin',
