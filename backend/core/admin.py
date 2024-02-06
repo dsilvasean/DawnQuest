@@ -13,9 +13,19 @@ class GradeAdminModel(admin.ModelAdmin):
     list_display = ('grade',)   # Fields to display in the change list
     list_filter = ('grade',)
 
+
+@admin.action(description="Mark select chapters to scrape")
+def mark_to_scrape(modeladmin, request, queryset,):
+    queryset.update(to_scrape=True)
+
+@admin.action(description="Mark select chapters to not scrape")
+def mark_to_not_scrape(modeladmin, request, queryset,):
+    queryset.update(to_scrape=False)
+
 class ChapterAdminModel(admin.ModelAdmin):
     list_display = ('name', 'get_subject', 'get_grade', 'to_scrape')   # Fields to display in the change list
     list_filter = ('subject__name','subject__grade__grade')
+    actions  = [mark_to_scrape, mark_to_not_scrape]
 
     @admin.display(ordering= "chapter__subject", description='Subject')
     def get_subject(self, obj):

@@ -269,11 +269,25 @@ class ShaalaaSpider(scrapy.Spider):
         # question_type = question_type_div.extract_first() or None
         # question_type_sub_type = response.xpath("//div[contains(@class, 'qbq_q_type')]/text()").extract()[-1] if len(question_type_div) > 1 else None
         # print(question_type, question_type_sub_type)
-        solution_block  = response.xpath("//div[contains(@id, 'answer')]")
-
+        # solution_block  = response.xpath("//div[contains(@id, 'answer')]/*") or None
+        solution_block  = response.xpath("//div[contains(@id, 'answer')]") or None
+        # sol_raw = ''
+        # for child_node in solution_block:
+        #     child_html = child_node.extract()
+        #     sol_raw =sol_raw+ child_html
+        # print(sol_raw)
+        # print(solution_block.get())
+        # sol_ = None
+        # for sol in solution_block.xpath(".//descendant::*"):
+        #     sol_ += sol.xpath()
         if solution_block is not None:
+            # solution_raw_html = ''
+            # for child_node in solution_block:
+            #     solution_raw_html +=child_node.extract()
             # _solution_["solution_"] = "".join(solution_block.xpath(".//*/text()").extract())
-            _solution_["solution_"] = solution_block.xpath(".//descendant::*").get()
+            # _solution_["solution_"] = solution_block.xpath(".//descendant::*").get()
+            # _solution_["solution_"] = solution_raw_html
+            _solution_["solution_"] = solution_block.extract()
             # _question_['solution_'] = "".join(solution_block.xpath(".//*/text()").extract())
         
         _solution_['extra'] = None
