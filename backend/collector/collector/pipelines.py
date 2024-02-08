@@ -14,7 +14,7 @@ from core.models import Book, Grade, Subject, Board, Chapter, QuestionType, Ques
 
 from core.models import Publication
 
-from core.models import Subject as ShaalaaSubject
+from core.models import Subject
 from asgiref.sync import sync_to_async
 
 from bs4 import BeautifulSoup
@@ -27,37 +27,58 @@ class ShaalaaPipeline:
     def process_item(self,item,spider):
         if spider.name == "ShaalaaSpider":
             if item.get("item_type") == "publication":
-                item_ = item.get("item_data")
-                _pub_ = Publication(
-                    author = item_['author'],
-                    name = item_['author'],
-                    hyperlink = item_['hyperlink']
-                )
-                _pub_.save()
+                publication = item.get("item_data")
+
+                if not Publication.objects.filter(site=spider.name, author = publication['author']).exists():
+                    _pub_ = Publication(
+                        site = spider.name,
+                        author = publication['author'],
+                        name = publication['author'],
+                        hyperlink = publication['hyperlink']
+                    )
+                    _pub_.save()
                 return item
             elif item.get("item_type") == "subjects_and_chapters":
                 item_ =item.get("item_data")
                 subject_info = item_.get("subject")
                 chapters = item_.get("chapters")
-                print(subject_info)
-                sub_ = ShaalaaSubject(shaalaa_id=subject_info["sub_id"], publication_id=subject_info["publication_id"], grade_id=subject_info["grade_id"], name=subject_info["name"], descriptive_name=subject_info["descriptive_name"], url=subject_info["url"])
-                sub_.save()
-                chapters_ = [Chapter(subject=sub_, name=chapter) for chapter in chapters]
-                Chapter.objects.bulk_create(chapters_)
-                return "Item Received"
+                new_chapters = None
+                try:
+                    subject = Subject.objects.get(shaalaa_id=subject_info["sub_id"])
+                except ObjectDoesNotExist:
+                    subject = Subject(shaalaa_id=subject_info["sub_id"], publication_id=subject_info["publication_id"], grade_id=subject_info["grade_id"], name=subject_info["name"], descriptive_name=subject_info["descriptive_name"], url=subject_info["url"])
+                    subject.save()
+
+                if len(chapters) != Chapter.objects.filter(subject=subject).count():
+                    existing_chapters = Chapter.objects.filter(subject=subject,name__in=chapters).values_list("name", flat=True)
+                    new_chapters = [chapter for chapter in chapters if chapter not in existing_chapters]
+
+                if new_chapters:
+                    chapters = [Chapter(subject=subject, name=chapter) for chapter in new_chapters]
+                    Chapter.objects.bulk_create(chapters)
+                return "Chapters and subjects pipeline"
 
             elif item.get("item_type") == "question_and_solution":
                 item_ =item.get("item_data")
                 solution_ = item_['_solution_']
                 print("question_pipeline")
-                question_p= self.pre_process_item("question", item_['question_'])
-                solution_p = self.pre_process_item("solution", solution_["solution_"])
-                types_list = solution_["question_type_from_solution"] 
-                # types_list = ["MCQ", "Odd MAN OUT", "A", "A", "A"]
-                type_ = self.get_or_create_question_type(types_list=types_list)
-                q_= Question.objects.create(chapter=Chapter.objects.get(id=item_["chapter_id"]), type=type_, question =question_p, solution_url=item_["solution_url"], review_required=item_["review_required"], meta="".join(item_["question_meta"]))
+                if not Question.objects.filter(solution_url=item_["solution_url"],).exists():
+                    question_p= self.pre_process_item("question", item_['question_'])
+                    solution_p = self.pre_process_item("solution", solution_["solution_"])
+                    types_list = solution_["question_type_from_solution"] 
+                    # types_list = ["MCQ", "Odd MAN OUT", "A", "A", "A"]
+                    type_ = self.get_or_create_question_type(types_list=types_list)
+                    q_= Question.objects.create(chapter=Chapter.objects.get(id=item_["chapter_id"]), type=type_, question =question_p, solution_url=item_["solution_url"], review_required=item_["review_required"], meta="".join(item_["question_meta"]))
 
-                s_ = Solution.objects.create(question=q_, solution=solution_p)
+                    s_ = Solution.objects.create(question=q_, solution=solution_p)
+            
+            elif item.get("item_type") == "chapters_url_update":
+                chapters_ = item.get("item_data").get("chapters")
+                subject_id  = item.get("item_data").get("subject")
+                subject = Subject.objects.get(shaalaa_id=subject_id)
+                print(chapters_[0])
+                chapters = [Chapter(subject=subject, name=chap["_chapter"]["chapter_name"], url=chap["chapter_url"] ) for chap in chapters_]
+                Chapter.objects.bulk_update(chapters, ["url"])
 
     def pre_process_item(self, type, data):
         if type == "question" or type == "solution":

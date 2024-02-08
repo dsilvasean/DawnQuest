@@ -1,36 +1,33 @@
 from django.db import models
 
-from core.models import TimeStampAbstractModel, MetaAbstarctModel
-from core.models import Board, Grade, Subject, Question
+from treebeard.mp_tree import MP_Node
 
-class QuestionPaper(TimeStampAbstractModel, MetaAbstarctModel):
-    board = models.ForeignKey(Board, on_delete=models.CASCADE)
+from core.models import Grade, Subject, QuestionType
+
+class QuestionPaperFormat(MP_Node):
+    NODE_TYPE = (
+        (1, "FORMAT_ID"),
+        (2, "QUESTION_SUBQUESTION"),
+        (3, "TYPE")
+    )
+    node_type = models.IntegerField(choices=NODE_TYPE)
+    marks = models.IntegerField()
+    data = models.CharField(max_length=155)
+    question_type = models.ManyToManyField(QuestionType, null=True, blank=True, limit_choices_to={'numchild': 0})
+
+    def __str__(self):
+        return f"{self.get_node_type_display(), self.marks, self.data}"
+
+
+
+class QuestionPaperFormatIndex(models.Model):
     grade = models.ForeignKey(Grade, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    max_marks = models.IntegerField()
-    questions = models.ManyToManyField(Question, through='QuestionPaperQuestionRelation')
-
-
-class QuestionPaperQuestionRelation(TimeStampAbstractModel, MetaAbstarctModel):
-    question_paper = models.ForeignKey(QuestionPaper, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    order = models.IntegerField()
+    format = models.ForeignKey(QuestionPaperFormat, on_delete=models.CASCADE)
     marks = models.IntegerField()
 
-
-class QuestionPaperFormat(TimeStampAbstractModel,):
-    grade = models.ForeignKey(Grade, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-
-class QuestionPaperFormatQuestion(TimeStampAbstractModel,):
-    question_head = models.CharField(max_length=255)
-    question_paper_format = models.ForeignKey(QuestionPaperFormat, on_delete=models.CASCADE)
-
-class QuestionPaperFormatQuestionSubQuestion(TimeStampAbstractModel):
-    question_paper_format_question = models.ForeignKey(QuestionPaperFormatQuestion, on_delete=models.CASCADE)
-    # question_type = models.ManyToManyField(QuestionType)
-    max_marks = models.IntegerField()
-
+    def __str__(self):
+        return f"{self.grade.grade}, {self.subject.name} {self.format.data} {self.marks}"
 
 
 
