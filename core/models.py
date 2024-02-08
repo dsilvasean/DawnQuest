@@ -87,6 +87,7 @@ class MetaAttributeExtra(models.Model):
         return f"{self.meta.spider} {self.meta.attribute_name} {self.attribute_extra_name}"
     
 class Publication(models.Model):
+    site = models.CharField(max_length=255, blank=True, null=True)
     board = models.ForeignKey(Board, blank=True, null=True, on_delete=models.CASCADE)
     author = models.CharField(max_length=255,)
     name = models.CharField(max_length=255,)
@@ -108,7 +109,7 @@ class Subject(models.Model):
     # )
     # subject = models.IntegerField(choices=SUBJECTS,)
     shaalaa_id = models.IntegerField(blank=True, null=True)
-    publication = models.ForeignKey(Publication, blank=True, null=True, on_delete=models.CASCADE)
+    publication = models.ForeignKey(Publication, blank=True, null=True, on_delete=models.CASCADE, related_name="subjects")
     board = models.ForeignKey(Board, blank=True, null=True, on_delete=models.CASCADE)
     grade = models.ForeignKey(Grade, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
@@ -161,7 +162,8 @@ class QuestionType(MP_Node):
     node_order_by = ["name"]
 
     def __str__(self):
-        return f"Type: {self.name}"
+        p = self.get_parent()
+        return f"Type: {self.name} {p.name if p else 'parent'}"
 
 class Question(QuestionAbstractModel):
     chapter = models.ForeignKey(Chapter, blank=True, null=True, on_delete=models.CASCADE)

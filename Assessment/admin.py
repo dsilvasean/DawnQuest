@@ -1,14 +1,13 @@
 from django.contrib import admin
+from .models import QuestionPaperFormat, QuestionPaperFormatIndex
+from treebeard.admin import TreeAdmin
 
-from .models import QuestionPaper, QuestionPaperQuestionRelation
+from treebeard.forms import movenodeform_factory
 
-from .models import QuestionPaperFormat, QuestionPaperFormatQuestion, QuestionPaperFormatQuestionSubQuestion
 
-admin.site.register(QuestionPaper)
-# admin.site.register(QuestionPaperQuestion)
-admin.site.register(QuestionPaperQuestionRelation)
+class QuestionPaperFormatAdminModel(TreeAdmin):
+    form = movenodeform_factory(QuestionPaperFormat)
 
-admin.site.register(QuestionPaperFormat)
-admin.site.register(QuestionPaperFormatQuestion)
-admin.site.register(QuestionPaperFormatQuestionSubQuestion)
+admin.site.register(QuestionPaperFormat, QuestionPaperFormatAdminModel)
+admin.site.register(QuestionPaperFormatIndex)
 
