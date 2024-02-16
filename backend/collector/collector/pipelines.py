@@ -10,8 +10,6 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from core.models import Book, Grade, Subject, Board, Chapter, QuestionType, Question, Solution
 
-# from ShaalaaMiner.models import Question, Solution, QuestionType, QuestionResource
-
 from core.models import Publication
 
 from core.models import Subject
