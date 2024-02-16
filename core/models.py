@@ -147,17 +147,9 @@ class Chapter(models.Model):
     # def __str__(self):
     #     return f"{self.subject} {self.name}"
 
-# class QuestionType(models.Model):
-#     name = models.CharField(max_length=255)
-    
-#     # child = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
-#     # parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
-#     def __str__(self):
-#         return self.name
-
-
 class QuestionType(MP_Node):
     name = models.CharField(max_length=155)
+    marks = models.IntegerField(default=0)
 
     node_order_by = ["name"]
 
@@ -165,9 +157,19 @@ class QuestionType(MP_Node):
         p = self.get_parent()
         return f"Type: {self.name} {p.name if p else 'parent'}"
 
+# class CoreQuestionType(MP_Node):
+#     name = models.CharField(max_length=155)
+
+#     node_order_by = ["name"]
+#     marks = models.IntegerField(default=0)
+
+#     def __str__(self):
+#         p = self.get_parent()
+#         return f"Type: {self.name} {p.name if p else 'parent'}"
+
 class Question(QuestionAbstractModel):
     chapter = models.ForeignKey(Chapter, blank=True, null=True, on_delete=models.CASCADE)
-    type = models.ForeignKey(QuestionType, on_delete=models.CASCADE, blank=True, null=True)
+    type = models.ForeignKey(QuestionType, on_delete=models.CASCADE, blank=True, null=True, related_name="questions")
     solution_url = models.URLField(max_length=555, blank=True)
 
     def __str__(self):
@@ -175,7 +177,7 @@ class Question(QuestionAbstractModel):
     
 
 class Solution(SolutionAbstractModel):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="solution")
 
     def __str__(self):
         return self.solution
