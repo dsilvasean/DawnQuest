@@ -157,19 +157,20 @@ class QuestionType(MP_Node):
         p = self.get_parent()
         return f"Type: {self.name} {p.name if p else 'parent'}"
 
-# class CoreQuestionType(MP_Node):
-#     name = models.CharField(max_length=155)
+class CoreQuestionType(MP_Node):
+    name = models.CharField(max_length=155)
 
-#     node_order_by = ["name"]
-#     marks = models.IntegerField(default=0)
+    node_order_by = ["name"]
+    marks = models.IntegerField(default=0)
 
-#     def __str__(self):
-#         p = self.get_parent()
-#         return f"Type: {self.name} {p.name if p else 'parent'}"
+    def __str__(self):
+        p = self.get_parent()
+        return f"Type: {self.name} {p.name if p else 'parent'}"
 
 class Question(QuestionAbstractModel):
     chapter = models.ForeignKey(Chapter, blank=True, null=True, on_delete=models.CASCADE)
     type = models.ForeignKey(QuestionType, on_delete=models.CASCADE, blank=True, null=True, related_name="questions")
+    core_type= models.ForeignKey(CoreQuestionType, on_delete=models.SET_NULL, blank=True, null=True, related_name="questions")
     solution_url = models.URLField(max_length=555, blank=True)
 
     def __str__(self):
