@@ -53,11 +53,12 @@ class ChapterAdminModel(admin.ModelAdmin):
         return obj.subject.grade.grade
 
 class QuestionAdminModel(admin.ModelAdmin):
-    list_display = ('get_question', 'get_question_type', 'get_question_type_core', 'get_subject', 'get_grade', 'get_chapter', 'get_question_board')
+    list_display = ('get_question', 'get_question_type', 'get_question_type_core', 'get_subject', 'get_grade', 'get_chapter', 'get_question_board', 'visibility', 'custom')
     list_filter = ( 'chapter__subject__name', 'chapter__name', 'type__name')
     search_fields = ["chapter__name"]
     action_form = XForm
     actions = [assign_core_category,]
+    save_as = True
 
     @admin.display(ordering= "chapter__subject", description='Subject')
     def get_subject(self, obj):

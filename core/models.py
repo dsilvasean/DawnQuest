@@ -23,6 +23,8 @@ class QuestionAbstractModel(TimeStampAbstractModel, MetaAbstarctModel):
     question =  tinymce_models.HTMLField()
     url = models.URLField(blank=True, null=True)
     review_required = models.BooleanField(default=False)
+    custom = models.BooleanField(default=False,)
+    visibility = models.BooleanField(default=True,)
 
     class Meta:
         abstract= True
@@ -144,8 +146,8 @@ class Chapter(models.Model):
 
     to_scrape = models.BooleanField(default=False)
 
-    # def __str__(self):
-    #     return f"{self.subject} {self.name}"
+    def __str__(self):
+        return f"{self.name}"
 
 class QuestionType(MP_Node):
     name = models.CharField(max_length=155)
@@ -165,13 +167,14 @@ class CoreQuestionType(MP_Node):
 
     def __str__(self):
         p = self.get_parent()
-        return f"Type: {self.name} {p.name if p else 'parent'}"
+        return f"Type: {self.name} {p.name if p else 'parent'}, {self.marks}"
 
 class Question(QuestionAbstractModel):
     chapter = models.ForeignKey(Chapter, blank=True, null=True, on_delete=models.CASCADE)
     type = models.ForeignKey(QuestionType, on_delete=models.CASCADE, blank=True, null=True, related_name="questions")
     core_type= models.ForeignKey(CoreQuestionType, on_delete=models.SET_NULL, blank=True, null=True, related_name="questions")
     solution_url = models.URLField(max_length=555, blank=True)
+    note = models.CharField(max_length=455, blank=True, null=True)
 
     def __str__(self):
         return f" {self.chapter.subject.grade} {self.chapter.subject.name} {self.chapter.name} {self.type}"
