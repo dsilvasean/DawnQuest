@@ -30,17 +30,20 @@ def send_response(result=True, message="", error=None, data=None):
 
 questions_queryset = None
 def parse_tree(tree, chapters=[]):
+    print(tree)
     global questions_queryset 
     questions_queryset = Question.objects.filter(chapter__in=chapters)
+    questions = []
     result = {"data_type":"questionaire",
               "total_marks":tree['data']['marks']}
     for node in tree['children']:
-        parse_node(node, result,)
+        parse_node(node, result, questions_=questions)
+    meta = {"format_id":tree['data']['data'], "question_ids": questions }
+    ret = {"result":result, "meta":meta}
+    return ret
 
-    return result
 
-
-def parse_node(node , result, from_=None,):
+def parse_node(node , result, from_=None, questions_=[]):
     global questions_queryset
     if node['data']['node_type'] == 2 and "_" not in node['data']['data']:
         result[f"{node['data']['data']}"] = {
@@ -50,7 +53,7 @@ def parse_node(node , result, from_=None,):
         }
         fr = node['data']['data'] 
         for node_ in node['children']:
-            parse_node(node_, result, from_=fr)
+            parse_node(node_, result, from_=fr, questions_=questions_)
 
     elif node['data']['node_type'] == 2 and "_" in node['data']['data']:
         result[f"{node['data']['data'].split('_')[0]}"]['data'].append({
@@ -61,7 +64,7 @@ def parse_node(node , result, from_=None,):
         })
         fr = node['data']['data']
         for node_ in node['children']:
-            parse_node(node_, result, from_=fr)
+            parse_node(node_, result, from_=fr, questions_= questions_)
 
     elif node['data']['node_type'] == 3:
         # 
@@ -93,21 +96,10 @@ def parse_node(node , result, from_=None,):
             # "question_type":CoreQuestionType.objects.filter(id__in=node['data']['question_type'])
         }
 
-        # for question in selected_questions:
-        #     data ={
-        #     "data_type":"question",
-        #     "content":question.question,
-        #     "question_type":question.core_type.name,
-        #     "marks":question.core_type.marks
-        # }
-        # # data['marks'] = total_marks
-        # # for types in node['data']['question_type']:
-
-        #     result[from_]['data'].append(data)
-        # # 
         
         if from_ is not None and "_" not in from_:
             for question in selected_questions:
+                questions_.append(question.id)
                 data ={
                 "data_type":"question",
                 "content":question.question,
@@ -127,6 +119,7 @@ def parse_node(node , result, from_=None,):
                 if sub['content'] == from_.split("_")[-1]:
                     # print(sub)
                     for question in selected_questions:
+                        questions_.append(question.id)
                         data ={
                         "data_type":"question",
                         "content":question.question,
