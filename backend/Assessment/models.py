@@ -2,8 +2,8 @@ from django.db import models
 
 from treebeard.mp_tree import MP_Node
 
-from core.models import Grade, Subject, QuestionType, CoreQuestionType
-
+from core.models import Grade, Subject, QuestionType, CoreQuestionType, Board, Grade, Question, Chapter
+from users.models import User
 class QuestionPaperFormat(MP_Node):
     NODE_TYPE = (
         (1, "FORMAT_ID"),
@@ -28,6 +28,25 @@ class QuestionPaperFormatIndex(models.Model):
 
     def __str__(self):
         return f"{self.grade.grade}, {self.subject.name} {self.format.data} {self.marks}"
+    
+class Assessment(models.Model):
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    format_id = models.ForeignKey(QuestionPaperFormatIndex, on_delete=models.CASCADE, blank=True, null=True)
+    marks = models.IntegerField()
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, blank=True, null=True)
+    grade = models.ForeignKey(Grade, on_delete=models.CASCADE, blank=True, null=True)
+    chapters = models.ManyToManyField(Chapter, blank=True, )
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, blank=True, null=True)
+    questions = models.ManyToManyField(Question, blank=True,)
+
+    raw_json = models.JSONField()
+
+    def __str__(self):
+        return f" {self.created_by.email} {self.format_id} {self.marks}"
+    
+
+
+
 
 
 

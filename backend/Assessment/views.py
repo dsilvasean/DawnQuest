@@ -1,8 +1,9 @@
 from rest_framework.views import APIView
 from django.utils.decorators import method_decorator
 
-from .models import QuestionPaperFormatIndex, QuestionPaperFormat
+from .models import QuestionPaperFormatIndex, QuestionPaperFormat, Assessment
 from core.models import Question
+from users.models import User
 
 from .serializer import QuestionPaperFormatIndexSerializer, QuestionPaperFormatSerializer
 
@@ -46,7 +47,13 @@ class AssessmentTest(APIView):
 
         tree = question_paper_format.dump_bulk()[0]
 
-        print(json.dumps((parse_tree(tree, chapters=chapters))))
+        data_ = (parse_tree(tree, chapters=chapters))
+        print(data_)
+        # print(json.dumps(data_))
+        assessment_instacne = Assessment.objects.create(created_by=User.objects.get(id=2), marks=20, raw_json=data_['result'], format_id_id=format_, subject_id=87)
+        assessment_instacne.chapters.add(*chapters)
+        assessment_instacne.questions.add(*data_['meta']['question_ids'])
+
         # parse_tree(tree)
 
         return send_response(result=True, message="post")
