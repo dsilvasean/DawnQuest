@@ -56,6 +56,6 @@ class AssessmentTest(APIView):
 
         # parse_tree(tree)
 
-        return send_response(result=True, message="post")
+        return send_response(result=True, message="post", data=data_['result'])
 
 
