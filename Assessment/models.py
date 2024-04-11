@@ -37,7 +37,7 @@ class Assessment(models.Model):
     grade = models.ForeignKey(Grade, on_delete=models.CASCADE, blank=True, null=True)
     chapters = models.ManyToManyField(Chapter, blank=True, )
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, blank=True, null=True)
-    questions = models.ManyToManyField(Question, blank=True,)
+    questions = models.ManyToManyField(Question, blank=True, related_name="assessment")
 
     raw_json = models.JSONField()
 
