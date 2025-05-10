@@ -26,6 +26,9 @@ class User(AbstractUser):
         return self.email
     
 class Student(models.Model):
+    first_name = models.TextField(max_length=255,)
+    last_name = models.TextField(max_length=255,)
+
     user = models.ForeignKey(User, on_delete=models.CASCADE,)
     grade = models.ForeignKey(Grade, null=True, blank=True, on_delete=models.CASCADE)
     board = models.ForeignKey(Board, null=True, blank=True, on_delete=models.CASCADE)
