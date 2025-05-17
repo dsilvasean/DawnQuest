@@ -4,8 +4,8 @@ import { Info } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "react-toastify";
-import Loader from "@/components/Loader";
-import FormCard from "@/components/FormCard";
+import Loader from "@/components/custom/Loader";
+import FormCard from "@/components/custom/FormCard";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"; // adjust import as per your setup
 
@@ -38,7 +38,7 @@ const Assessment = () => {
   const [paperFormat, setPaperFormat] = useState<PaperFormat[]>([]);
   const [student, setStudent] = useState<Student | null>(null);
   const [subjects, setSubjects] = useState<Subjects[]>([]);
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
 
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedPaperFormat, setSelectedPaperFormat] = useState("");
@@ -148,8 +148,13 @@ const Assessment = () => {
     <>
 
      <div className="relative overflow-hidden w-full">
-      <div className="flex w-[200%] transition-transform duration-500" style={{ transform: `translateX(-${(step - 1) * 50}%)` }} >
-      <div className="w-full px-4">
+    
+     <div
+      className="flex transition-transform duration-500"
+      style={{ transform: `translateX(-${(step - 1) * 100}vw)` }}
+    >
+
+      <div className="w-[100vw] px-4 flex-shrink-0">
           <FormCard
             title="Assessment"
             onSubmit={handleNext}
@@ -196,13 +201,13 @@ const Assessment = () => {
             </div>
           </FormCard>
         </div>
-        <div className="w-full px-4">
+        <div className="w-[100vw] px-4 flex-shrink-0">
         <FormCard
             title="Select Paper Format"
             onSubmit={(e) => {
               e.preventDefault();
               toast.success("Form submitted!");
-              // proceed to next action here
+              setStep(3)
             }}
             loading={loading}
             buttonText="Submit"
@@ -221,17 +226,7 @@ const Assessment = () => {
                               </SelectItem>
                             ))}
                           </SelectContent>
-                          <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10"
-              onClick={(e) => {
-                e.stopPropagation(); // prevent opening the dropdown
-              }}
-            >
-               <Info className="h-4 w-4" />
-               </Button>
+              
                         </Select>
 
               <button
@@ -241,9 +236,19 @@ const Assessment = () => {
               >
                 ← Back
               </button>
+              <button
+                type="button"
+                onClick={handleBack}
+                className="text-sm text-blue-500 mt-2"
+              >
+                Show Selected Format
+              </button>
               
             </div>
           </FormCard>
+        </div>
+        <div className="w-[100vw] px-4 flex-shrink-0">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores officiis cum voluptate amet fugiat sequi saepe maiores nulla veritatis eligendi odio ex autem minima similique dolorem maxime voluptates, natus error unde consequatur delectus laboriosam asperiores minus corrupti? Eveniet repellendus voluptate debitis delectus mollitia commodi inventore dolore modi at repudiandae saepe nisi aperiam, hic quos doloremque nam cupiditate earum maxime consectetur incidunt voluptatem? Nostrum eveniet commodi, atque animi, ex cum enim quae, magni dignissimos veniam fugiat assumenda? Laudantium totam assumenda, culpa eaque aperiam obcaecati pariatur ad enim suscipit voluptatum nisi? Voluptatem odio unde vel harum, modi voluptatibus ut ipsum nihil quia?
         </div>
       </div>
      </div>

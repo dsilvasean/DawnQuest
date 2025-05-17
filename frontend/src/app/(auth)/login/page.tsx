@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "react-toastify";
-import Loader from "@/components/Loader";
-import FormCard from "@/components/FormCard";
+import Loader from "@/components/custom/Loader";
+import FormCard from "@/components/custom/FormCard";
 import { useRouter } from "next/navigation";
 
 

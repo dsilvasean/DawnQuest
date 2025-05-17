@@ -10,8 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "react-toastify";
-import Loader from "@/components/Loader";
-import FormCard from "@/components/FormCard";
+import Loader from "@/components/custom/Loader";
+import FormCard from "@/components/custom/FormCard";
 import { useRouter } from "next/navigation";
 
 interface Grade { id: number; grade: string; }

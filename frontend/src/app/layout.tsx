@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Courgette, Poppins } from "next/font/google";
 import "./globals.css";
 
-import NavigationMenuDemo from "@/components/Navbat";
+import NavigationMenuDemo from "@/components/custom/Navbar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";  // Import Toast styles
 
