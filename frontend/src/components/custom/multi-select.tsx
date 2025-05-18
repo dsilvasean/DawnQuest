@@ -70,6 +70,8 @@ interface MultiSelectProps
     value: string;
     /** Optional icon component to display alongside the option. */
     icon?: React.ComponentType<{ className?: string }>;
+    // custom for disabled
+    disabled?:boolean;
   }[];
 
   /**
@@ -178,15 +180,16 @@ export const MultiSelect = React.forwardRef<
       const newSelectedValues = selectedValues.slice(0, maxCount);
       setSelectedValues(newSelectedValues);
       onValueChange(newSelectedValues);
-    };
+    };  
 
     const toggleAll = () => {
+      const enabledOptions = options.filter((option) => !option.disabled);
       if (selectedValues.length === options.length) {
         handleClear();
       } else {
-        const allValues = options.map((option) => option.value);
-        setSelectedValues(allValues);
-        onValueChange(allValues);
+        const enabledValues = enabledOptions.map((option)=> option.value);
+        setSelectedValues(enabledValues);
+        onValueChange(enabledValues);
       }
     };
 
@@ -294,6 +297,7 @@ export const MultiSelect = React.forwardRef<
               <CommandEmpty>No results found.</CommandEmpty>
               <CommandGroup>
                 <CommandItem
+                disabled={true}
                   key="all"
                   onSelect={toggleAll}
                   className="cursor-pointer"
@@ -312,11 +316,17 @@ export const MultiSelect = React.forwardRef<
                 </CommandItem>
                 {options.map((option) => {
                   const isSelected = selectedValues.includes(option.value);
+                  const isDisabled = option.disabled;
                   return (
                     <CommandItem
                       key={option.value}
-                      onSelect={() => toggleOption(option.value)}
-                      className="cursor-pointer"
+                      onSelect={() => {
+                        if (!isDisabled) toggleOption(option.value);
+                      }}
+                      className={cn(
+                        "cursor-pointer",
+                        isDisabled && "opacity-50 pointer-events-none cursor-not-allowed"
+                      )}
                     >
                       <div
                         className={cn(

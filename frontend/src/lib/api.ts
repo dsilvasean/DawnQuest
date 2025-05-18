@@ -43,3 +43,20 @@ export const fetchChapters = async (subject: number,)=>{
     if (!res.ok) throw new Error("Internal Server Error");
     return res.json() 
 }
+
+export const generateAssessment = async(format:number, chapters:string[], token:string )=>{
+  const payload = {
+    format_id: format,
+    chapters: chapters
+  }
+  const res = await fetch(`${API_URL}/assessment/test`, {
+    method:"POST",
+    headers:{
+      'Authorization': `Bearer ${token}`,
+      "Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error("Internal Server Error");
+  return res.json() 
+
+}
