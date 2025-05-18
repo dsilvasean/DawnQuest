@@ -106,7 +106,7 @@ const Assessment = () => {
     if (student?.grade && token) {
       fetchPatterns(selectedSubject.id, student?.grade, token).then((data) => {
         console.log("patterns fetched");
-        setPaperFormat(data.data);
+        setPaperFormat(data);
         console.log(paperFormat);
         setStep(next_step);
       });
