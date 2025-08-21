@@ -35,12 +35,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'users',
     'core',
     'tinymce',
     'treebeard',
     'ShaalaaMiner',
     'Assessment',
     'rest_framework',
+
     'django.contrib.admin',
     'django_admin_listfilter_dropdown',
     'django.contrib.auth',
@@ -110,6 +112,7 @@ REST_FRAMEWORK = {
 #     }
 # }
 
+AUTH_USER_MODEL = "users.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
