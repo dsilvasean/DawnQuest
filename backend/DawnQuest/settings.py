@@ -29,9 +29,10 @@ SECRET_KEY = '@j$krwk*0f=de29fsubsp!!v9^7#0=hndmxg&91&+gl-!@_!bf'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
-
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,6 +43,8 @@ INSTALLED_APPS = [
     'ShaalaaMiner',
     'Assessment',
     'rest_framework',
+    'drf_yasg',
+    'corsheaders',
 
     'django.contrib.admin',
     'django_admin_listfilter_dropdown',
@@ -53,6 +56,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -62,6 +66,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ORIGIN_ALLOW_ALL = True
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1", 
+]
+CORS_ALLOW_CREDENTIALS = False
 ROOT_URLCONF = 'DawnQuest.urls'
 
 TEMPLATES = [
@@ -93,12 +104,24 @@ DATABASES = {
     }
 }
 
+# REST_FRAMEWORK = {
+
+
+#     # Use Django's standard `django.contrib.auth` permissions,
+#     # or allow read-only access for unauthenticated users.
+#     # 'DEFAULT_PERMISSION_CLASSES': [
+#     #     'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+#     # ]
+# }
+
+
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    # ]
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+    
 }
 
 # DATABASES = {
